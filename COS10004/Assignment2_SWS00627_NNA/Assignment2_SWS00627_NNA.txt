@@ -1,0 +1,1786 @@
+// Press 'P' to pause
+// Press 'S' to split
+// Press 'A' to resume
+// Press 'R' to reset
+;--------------------- Start --------------------------------------
+      MOV R0, #47       ; seconds one digit
+      MOV R1, #48       ; seconds tens digit
+      MOV R2, #48       ; minutes ones digit
+      MOV R3, #48       ; minutes tens digit
+      LDR R10, split_minutes_tens_1 ; Initialize all split digits to 0 which is 48 in ASCII
+      MOV R10, #48
+      STR R10, split_minutes_tens_1
+      LDR R10, split_minutes_ones_1
+      MOV R10, #48
+      STR R10, split_minutes_ones_1
+      LDR R10, split_seconds_tens_1
+      MOV R10, #48
+      STR R10, split_seconds_tens_1
+      LDR R10, split_seconds_ones_1
+      MOV R10, #48
+      STR R10, split_seconds_ones_1
+;--------------------------------------------
+      LDR R10, split_minutes_tens_2 
+      MOV R10, #48
+      STR R10, split_minutes_tens_2
+      LDR R10, split_minutes_ones_2
+      MOV R10, #48
+      STR R10, split_minutes_ones_2
+      LDR R10, split_seconds_tens_2
+      MOV R10, #48
+      STR R10, split_seconds_tens_2
+      LDR R10, split_seconds_ones_2
+      MOV R10, #48
+      STR R10, split_seconds_ones_2
+;--------------------------------------------
+      STR R10, split_minutes_tens_3
+      LDR R10, split_minutes_ones_3
+      MOV R10, #48
+      STR R10, split_minutes_ones_3
+      LDR R10, split_seconds_tens_3
+      MOV R10, #48
+      STR R10, split_seconds_tens_3
+      LDR R10, split_seconds_ones_3
+      MOV R10, #48
+      STR R10, split_seconds_ones_3
+;--------------------------------------------
+      STR R10, split_minutes_tens_4
+      LDR R10, split_minutes_ones_4
+      MOV R10, #48
+      STR R10, split_minutes_ones_4
+      LDR R10, split_seconds_tens_4
+      MOV R10, #48
+      STR R10, split_seconds_tens_4
+      LDR R10, split_seconds_ones_4
+      MOV R10, #48
+      STR R10, split_seconds_ones_4
+;--------------------------------------------
+      STR R10, split_minutes_tens_5
+      LDR R10, split_minutes_ones_5
+      MOV R10, #48
+      STR R10, split_minutes_ones_5
+      LDR R10, split_seconds_tens_5
+      MOV R10, #48
+      STR R10, split_seconds_tens_5
+      LDR R10, split_seconds_ones_5
+      MOV R10, #48
+      STR R10, split_seconds_ones_5
+      BL delay
+mainLoop:
+      BL checkInput
+      B mainLoop
+      HALT
+;---------------------- checkInput Function ----------------------------
+checkInput:             ; depending the key pressed it goes to start, stop or reset
+      LDR R11, .LastKeyAndReset ; loads the last key pressed into R11
+      CMP R11, #80      ; compares key pressed with P which is stop
+      BEQ pause
+      CMP R11, #82      ; compares key pressed with R which is reset
+      BEQ reset
+      CMP R11, #83      ; compares key pressed with S which is split
+      BEQ split
+      B cont
+;-----------------------------------------------------------------
+start:                  ; start loop
+      B cont
+;-----------------------------------------------------------------
+pause:                  ; stop loop
+      LDR R11, .LastKey ; loads the last key pressed again in the loop
+      CMP R11, #65      ; it will go to start state and increment if A is pressed
+      BEQ start
+      CMP R11, #82      ; it will reset the clock and stay stopped
+      BEQ reset
+      B pause           ; keeps on looping until 'A' is pressed
+;-----------------------------------------------------------------
+split:
+      PUSH {LR}
+      BL splitDisplay
+      POP {LR}
+      B checkInput
+;-----------------------------------------------------------------
+reset:                  ; reset loop
+      PUSH {LR}
+      BL resetDisplay
+      POP {LR}
+      PUSH {LR}
+      BL splitDisplay
+      POP {LR}
+      PUSH {LR}
+      BL updateDisplay
+      POP {LR}
+      B pause
+;-----------------------------------------------------------------
+cont:
+      PUSH {LR}
+      BL increment
+      POP {LR}
+      RET
+;------------------------- increment function -----------------------
+increment:
+      PUSH {R4, R5, R6, R7}
+      MOV R4, R0        ; 00:0(0)
+      MOV R5, R1        ; 00:(0)0
+      MOV R6, R2        ; 0(0):00
+      MOV R7, R3        ; (0)0:00
+; seconds ones is incremented here 
+addSecondsOneloop:
+      CMP R4, #57       ; 9
+      BEQ addSecondsTensLoop ; it needs to increment the tens place and reset the ones place
+; after checking for the condition, it will increment the seconds ones place
+      ADD R4, R4, #1
+      B display
+;-----------------------------------------------------------------
+// seconds tens is incremented here 
+addSecondsTensLoop:
+      CMP R5, #53       ; 5
+      BEQ addMinutesOnesLoop
+; after checking for the condition, it will increment the seconds tens place
+      MOV R4, #48       ; make the ones place zero
+      ADD R5, R5, #1
+      B display
+;-----------------------------------------------------------------
+// minutesOnes is incremented here
+addMinutesOnesLoop:
+      CMP R6, #57       ; 9
+      BEQ addMinutesTensLoop
+; after checking for the condition, it will increment the minutes ones place
+      MOV R4, #48       ; make the seconds ones place zero
+      MOV R5, #48       ; makes the seconds tens place zero
+      ADD R6, R6, #1
+      B display
+;-----------------------------------------------------------------
+// minutesTens is incremented here 
+addMinutesTensLoop:
+      CMP R7, #57       ; 9
+      BEQ resetDigits
+; after checking for the condition, it will increment the minutes tens place
+      MOV R4, #48       ; make the seconds ones place zero
+      MOV R5, #48       ; makes the seconds tens place zero
+      MOV R6, #48       ; makes the munites ones place zero
+      ADD R7, R7, #1
+      B display
+resetDigits:            ; check this and make digits zeros
+      PUSH {LR}
+      BL resetDisplay
+      POP {LR}
+      B return
+display:
+      MOV R0, R4        ; MOVe the updated value to R0 for displaying on the screen
+      MOV R1, R5        ; MOVe the updated value to R1 for displaying on the screen
+      MOV R2, R6        ; MOVe the updated value to R2 for displaying on the screen
+      MOV R3, R7        ; MOVe the updated value to R0 for displaying on the screen
+return:
+      PUSH {LR}
+// add push to R0 - R3
+      BL updateDisplay  ; updates the display
+// add POP to R0 - R3
+      POP {LR}
+      POP {R4, R5, R6, R7}
+      RET
+;--------------------- updateDisplay function -----------------------------------------
+updateDisplay:
+      PUSH {R4, R5, R6, R7, R8, R9}
+      MOV R4, R0        ; MOVe the digit to be updated to R4
+      MOV R5, R1        ; MOVe the digit to be updated to R5
+      MOV R6, R2        ; MOVe the digit to be updated to R6
+      MOV R7, R3        ; MOVe the digit to be updated to R7
+      MOV R12, #0X0A
+      STRB R12, .WriteChar ; newline and avoid flashy
+      SUB R7, R7, #48
+      STR R7, .WriteUnsignedNum
+      ADD R7, R7, #48
+; Display minutes ones
+      SUB R6, R6, #48
+      STR R6, .WriteUnsignedNum
+; Display colon
+      PUSH {R6}
+      MOV R6, #Colon
+      STR R6, .WriteString
+      POP {R6}
+      ADD R6, R6, #48
+; Display seconds tens
+      SUB R5, R5, #48
+      STR R5, .WriteUnsignedNum
+      ADD R5, R5, #48
+; Display seconds ones
+      SUB R4, R4, #48
+      STR R4, .WriteUnsignedNum
+; Display new line
+      PUSH {R4}
+      MOV R4, #NewLine
+      STR R4, .WriteString
+      POP {R4}
+      ADD R4, R4, #48
+; Display split time
+      MOV R10, #split1
+      STR R10, .WriteString
+      LDR R10, split_minutes_tens_1
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_minutes_ones_1
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Colon
+      STR R10, .WriteString
+      LDR R10, split_seconds_tens_1
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_seconds_ones_1
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Space
+      STR R10, .WriteString
+      MOV R10, #split2
+      STR R10, .WriteString
+      LDR R10, split_minutes_tens_2
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_minutes_ones_2
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Colon
+      STR R10, .WriteString
+      LDR R10, split_seconds_tens_2
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_seconds_ones_2
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #split3
+      STR R10, .WriteString
+      LDR R10, split_minutes_tens_3
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_minutes_ones_3
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Colon
+      STR R10, .WriteString
+      LDR R10, split_seconds_tens_3
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_seconds_ones_3
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Space
+      STR R10, .WriteString
+      MOV R10, #split4
+      STR R10, .WriteString
+      LDR R10, split_minutes_tens_4
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_minutes_ones_4
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Colon
+      STR R10, .WriteString
+      LDR R10, split_seconds_tens_4
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_seconds_ones_4
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #split5
+      STR R10, .WriteString
+      LDR R10, split_minutes_tens_5
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_minutes_ones_5
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      MOV R10, #Colon
+      STR R10, .WriteString
+      LDR R10, split_seconds_tens_5
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+      LDR R10, split_seconds_ones_5
+      SUB R10, R10, #48
+      STR R10, .WriteUnsignedNum
+; it then displays the character on the screen
+      MOV R8, #.CharScreen ; R8 is used to store CharScreen
+      STRB R4, [R8 + 76] ; displays seconds ones digit
+      STRB R5, [R8 + 74] ; displays seconds tens digit
+;-------------------
+      MOV R9, #58       ; MOVes ':' to display
+      STRB R9, [R8 + 72]
+;-------------------
+      MOV R9, #69       ; MOVes 'E' to display
+      STRB R9, [R8 + 5]
+      MOV R9, #76       ; MOVes 'L' to display
+      STRB R9, [R8 + 6]
+      MOV R9, #65       ; MOVes 'A' to display
+      STRB R9, [R8 + 7]
+      MOV R9, #80       ; MOVes 'P' to display
+      STRB R9, [R8 + 8]
+      MOV R9, #83       ; MOVes 'S' to display
+      STRB R9, [R8 + 9]
+      MOV R9, #69       ; MOVes 'E' to display
+      STRB R9, [R8 + 10]
+      MOV R9, #68       ; MOVes 'D' to display
+      STRB R9, [R8 + 11]
+;-------------------
+      STRB R6, [R8 + 70] ; displays minutes one digit after seconds tens on the display
+      STRB R7, [R8 + 68] ; displays minutes tens digit before ones on the display
+timedecoration:
+      MOV R4, #.PixelScreen
+      MOV R5, #.red
+      MOV R8,#0
+      MOV R6, #2156
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+loop1:
+      SUB R6, R6, #4
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R8,R8,#1
+      CMP R8, #21
+      BLT loop1
+      MOV R8, #0
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+loop2:
+      ADD R6, R6, #4
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R8,R8,#1
+      CMP R8, #21
+      BLT loop2
+      PUSH {LR}
+      BL draw
+      POP {LR}
+; then it delays for one second
+      PUSH {LR}
+      BL delay
+      POP {LR}
+      POP {R4, R5, R6, R7, R8, R9}
+      RET
+;------------------- resetDisplay function ----------------------------------
+resetDisplay:
+; resets the display to 00:00
+      MOV R0, #48
+      MOV R1, #48
+      MOV R2, #48
+      MOV R3, #48
+      RET
+;---------------------- splitDisplay function -------------------------------------
+splitDisplay:
+;Take the value from split 4 to split 5
+      LDR R10, split_seconds_ones_4
+      STR R10, split_seconds_ones_5
+      LDR R10, split_seconds_tens_4
+      STR R10, split_seconds_tens_5
+      LDR R10, split_minutes_ones_4
+      STR R10, split_minutes_ones_5
+      LDR R10, split_minutes_tens_4
+      STR R10, split_minutes_tens_5
+;Take the value from split 3 to split 4
+      LDR R10, split_seconds_ones_3
+      STR R10, split_seconds_ones_4
+      LDR R10, split_seconds_tens_3
+      STR R10, split_seconds_tens_4
+      LDR R10, split_minutes_ones_3
+      STR R10, split_minutes_ones_4
+      LDR R10, split_minutes_tens_3
+      STR R10, split_minutes_tens_4
+;Take the value from split 2 to split 3
+      LDR R10, split_seconds_ones_2
+      STR R10, split_seconds_ones_3
+      LDR R10, split_seconds_tens_2
+      STR R10, split_seconds_tens_3
+      LDR R10, split_minutes_ones_2
+      STR R10, split_minutes_ones_3
+      LDR R10, split_minutes_tens_2
+      STR R10, split_minutes_tens_3
+;Take the value from split 1 to split 2
+      LDR R10, split_seconds_ones_1
+      STR R10, split_seconds_ones_2
+      LDR R10, split_seconds_tens_1
+      STR R10, split_seconds_tens_2
+      LDR R10, split_minutes_ones_1
+      STR R10, split_minutes_ones_2
+      LDR R10, split_minutes_tens_1
+      STR R10, split_minutes_tens_2
+;Take the updated value to split 1
+      PUSH {R4, R5, R6, R7, R8, R9}
+      MOV R4, R0        ; MOVe the digit to be updated to R4
+      MOV R10, R4
+      STR R10, split_seconds_ones_1
+      MOV R5, R1        ; MOVe the digit to be updated to R5
+      MOV R10, R5
+      STR R10, split_seconds_tens_1
+      MOV R6, R2        ; MOVe the digit to be updated to R6
+      MOV R10, R6
+      STR R10, split_minutes_ones_1
+      MOV R7, R3        ; MOVe the digit to be updated to R7
+      MOV R10, R7
+      STR R10, split_minutes_tens_1
+; it then displays the character on the screen
+      MOV R8, #.CharScreen ; R8 is used to store CharScreen
+      MOV R9, #83       ; MOVes 'S' to display
+      STRB R9, [R8 + 20]
+      MOV R9, #80       ; MOVes 'P' to display
+      STRB R9, [R8 + 21]
+      MOV R9, #76       ; MOVes 'L' to display
+      STRB R9, [R8 + 22]
+      MOV R9, #73       ; MOVes 'I' to display
+      STRB R9, [R8 + 23]
+      MOV R9, #84       ; MOVes 'T' to display
+      STRB R9, [R8 + 24]
+      STRB R4, [R8 + 91] ; displays seconds ones digit
+      STRB R5, [R8 + 89] ; displays seconds tens digit
+;-------------------
+      MOV R9, #58       ; moves ':' to display
+      STRB R9, [R8 + 87]
+;-------------------
+      STRB R6, [R8 + 85] ; displays minutes one digit after seconds tens on the display
+      STRB R7, [R8 + 83] ; displays minutes tens digit before ones on the display
+splitdecoration:
+      MOV R4, #.PixelScreen
+      MOV R5, #.red
+      MOV R8,#0
+      MOV R6, #2272
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      SUB R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+loop3:
+      SUB R6, R6, #4
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R8,R8,#1
+      CMP R8, #21
+      BLT loop3
+      MOV R8, #0
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R6, R6, #256
+      ADD R7, R4, R6
+      STR R5, [R7]
+loop4:
+      ADD R6, R6, #4
+      ADD R7, R4, R6
+      STR R5, [R7]
+      ADD R8,R8,#1
+      CMP R8, #21
+      BLT loop4
+      POP {R4, R5, R6, R7, R8, R9}
+      RET
+;-------------------- delay function -----------------------------------------
+delay:
+      PUSH {R4, R5, R6}
+      LDR R4, .Time     ; start time
+timer:
+      LDR R5, .Time     ; current time
+      SUB R6, R5, R4    ; elapsed time = current time - start time
+      CMP R6, #1        ; compares with 1 sec
+      BLT timer
+      POP {R4, R5, R6}
+      RET
+NewLine: .ASCIZ "\n"
+Space: .ASCIZ "  "
+Colon: .ASCIZ ": "
+WriteChar: .word 0
+split1: .ASCIZ "Split 1: "
+split2: .ASCIZ "Split 2: "
+split3: .ASCIZ "Split 3: "
+split4: .ASCIZ "Split 4: "
+split5: .ASCIZ "Split 5: "
+split_minutes_tens_1: .WORD 0x00110
+split_minutes_ones_1: .WORD 0x00114
+split_seconds_tens_1: .WORD 0x00118
+split_seconds_ones_1: .WORD 0x0011C
+split_minutes_tens_2: .WORD 0x00210
+split_minutes_ones_2: .WORD 0x00214
+split_seconds_tens_2: .WORD 0x00218
+split_seconds_ones_2: .WORD 0x0021C
+split_minutes_tens_3: .WORD 0x00110
+split_minutes_ones_3: .WORD 0x00314
+split_seconds_tens_3: .WORD 0x00318
+split_seconds_ones_3: .WORD 0x0031C
+split_minutes_tens_4: .WORD 0x00410
+split_minutes_ones_4: .WORD 0x00414
+split_seconds_tens_4: .WORD 0x00418
+split_seconds_ones_4: .WORD 0x0041C
+split_minutes_tens_5: .WORD 0x00110
+split_minutes_ones_5: .WORD 0x00514
+split_seconds_tens_5: .WORD 0x00518
+split_seconds_ones_5: .WORD 0x0051C
+draw:
+      MOV R4, #.PixelScreen
+      MOV R5, #.black
+      MOV R6,#5660
+      MOV R7,#0
+candy:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT candy
+      MOV R7, #0
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L1:
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#3
+      BLT L1
+      MOV R7, #0
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L2:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#6
+      BLT L2
+      MOV R7, #0
+L3:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L3
+      MOV R7, #0
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #528
+L4:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L4
+      MOV R7, #0
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #1520
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+L5:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L5
+      MOV R7, #0
+L6:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L6
+      MOV R7, #0
+L7:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT L7
+      MOV R7, #0
+      ADD R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #504
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #508
+L8:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R7,R7,#1
+      CMP R7,#7
+      BLT L8
+      MOV R7, #0
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+L9:
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R7,R7,#1
+      CMP R7,#7
+      BLT L9
+      MOV R7, #0
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.red
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.grey
+      ADD R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.darkred
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.grey
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.red
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.grey
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.red
+      ADD R6,R6, #508
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.darkred
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.grey
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.darkred
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.red
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.greenyellow
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #264
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.forestgreen
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.greenyellow
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #240
+      ADD R8, R4 ,R6
+      STR R5, [R8] 
+      MOV R5, #.greenyellow
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.forestgreen
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.grey
+      ADD R6,R6, #1012
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.red
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.forestgreen
+      SUB R6,R6, #504
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.darkgreen
+      ADD R6,R6, #264
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #772
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.greenyellow
+      SUB R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+snowflake:
+      MOV R6,#7556
+      MOV R5, #.black
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L10:
+      ADD R6,R6, #248
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L10
+      MOV R7, #0
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L11:
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L11
+      MOV R7, #0
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L12:
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L12
+      MOV R7, #0
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L13:
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#4
+      BLT L13
+      MOV R7, #0
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #12
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #12
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L14:
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT L14
+      MOV R7, #0
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L15:
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT L15
+      MOV R7, #0
+      SUB R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L16:
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT L16
+      MOV R7, #0
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L17:
+      ADD R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#5
+      BLT L17
+      MOV R7, #0
+      SUB R6,R6, #12
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.lightblue
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L18:
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#18
+      BLT L18
+      MOV R7, #0
+      SUB R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #512
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #248
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #512
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #504
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #16
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #508
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #248
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #520
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #508
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #248
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #512
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #240
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #516
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #504
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #264
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #264
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #252
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #244
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #260
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #508
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      SUB R6,R6, #520
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.black
+      ADD R6,R6, #1520
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.lightblue
+      ADD R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+L19:
+      SUB R6,R6, #256
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R7,R7,#1
+      CMP R7,#18
+      BLT L19
+      MOV R7, #0
+      MOV R5, #.white
+      ADD R6,R6, #512
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.lightblue
+      SUB R6,R6, #4
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #504
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #8
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #768
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      MOV R5, #.white
+      MOV R6, #7572
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #12
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #16
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #16
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      ADD R6,R6, #12
+      ADD R8, R4 ,R6
+      STR R5, [R8]
+      RET
