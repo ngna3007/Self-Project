@@ -1,0 +1,52 @@
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe.config
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.pdb
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.AssemblyReference.cache
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fLogin.resources
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.Properties.Resources.resources
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.GenerateResource.cache
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.CoreCompileInputs.cache
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.pdb
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fTableManager.resources
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAccountProfile.resources
+C:\Users\PC\Downloads\Billiard Management App\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAdmin.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.AssemblyReference.cache
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAccountProfile.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAdmin.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fLogin.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fTableManager.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.Properties.Resources.resources
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.GenerateResource.cache
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.CoreCompileInputs.cache
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.pdb
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe.config
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.pdb
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe.config
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.pdb
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.AssemblyReference.cache
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAccountProfile.resources
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAdmin.resources
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fLogin.resources
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fTableManager.resources
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.Properties.Resources.resources
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.GenerateResource.cache
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.CoreCompileInputs.cache
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.exe
+C:\Users\Na\Downloads\BilliardMangement\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.pdb
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe.config
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\bin\Debug\BilliardMangement.pdb
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.AssemblyReference.cache
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAccountProfile.resources
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fAdmin.resources
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fLogin.resources
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.fTableManager.resources
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.Properties.Resources.resources
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.GenerateResource.cache
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.csproj.CoreCompileInputs.cache
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.exe
+C:\Users\PC\Downloads\BilliardMangementLastest\BilliardMangement\BilliardMangement\obj\Debug\BilliardMangement.pdb
